@@ -57,14 +57,15 @@ export function CreatePollForm() {
         body: JSON.stringify({ question, options: filteredOptions }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error('Failed to create poll');
+        throw new Error(data.message || 'Failed to create poll');
       }
 
-      const data = await res.json();
       router.push(`/poll/${data.pollId}`);
-    } catch (error) {
-      toast({ title: 'Error', description: 'Something went wrong. Please try again.', variant: 'destructive' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Something went wrong. Please try again.', variant: 'destructive' });
       setIsLoading(false);
     }
   };
