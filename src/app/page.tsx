@@ -1,6 +1,6 @@
 import { CreatePollForm } from "@/components/CreatePollForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Polls } from "lucide-react";
+import { Vote } from "lucide-react";
 
 export default function Home() {
   return (
@@ -9,7 +9,7 @@ export default function Home() {
         <Card className="shadow-lg">
           <CardHeader className="text-center">
             <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit mb-4">
-              <Polls className="h-8 w-8" />
+              <Vote className="h-8 w-8" />
             </div>
             <CardTitle className="text-3xl font-bold tracking-tight">Create a New Poll</CardTitle>
             <CardDescription className="text-lg">
