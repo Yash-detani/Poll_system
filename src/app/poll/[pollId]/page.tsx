@@ -32,6 +32,6 @@ export default async function PollPage({ params }: { params: { pollId: string } 
 export async function generateMetadata({ params }: { params: { pollId: string } }) {
   const poll = await getPoll(params.pollId);
   return {
-    title: poll ? poll.question : 'Poll Not Found',
+    title: poll ? `${poll.question} | QuickVote` : 'Poll Not Found',
   };
 }

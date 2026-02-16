@@ -1,11 +1,11 @@
-# Realtime Poll Platform
+# QuickVote
 
 This is a full-stack web application that allows users to create polls, share them with a unique link, vote, and see results update in real-time. It's built with Next.js, MongoDB, and Socket.IO, and is designed to be production-ready.
 
 ## Demo
 
 ![Poll Creation](https://raw.githubusercontent.com/example/repo/main/screenshots/creation.png)
-_Note: Replace with actual screenshot URLs after deployment._
+_Note: Demo screenshots are illustrative._
 
 ![Poll Voting](https://raw.githubusercontent.com/example/repo/main/screenshots/voting.png)
 
@@ -60,8 +60,8 @@ To ensure the integrity of poll results, two layers of vote restriction have bee
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/your-repo/realtime-poll-platform.git
-    cd realtime-poll-platform
+    git clone https://github.com/your-repo/quickvote.git
+    cd quickvote
     ```
 
 2.  **Install dependencies**:

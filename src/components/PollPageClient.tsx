@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Share2, Copy, Loader2 } from 'lucide-react';
+import { CheckCircle, Share2, Check, Loader2 } from 'lucide-react';
 import io, { Socket } from 'socket.io-client';
 
 interface PollPageClientProps {
@@ -18,6 +18,7 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const { toast } = useToast();
 
   const totalVotes = useMemo(() => {
@@ -75,7 +76,7 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
       toast({
         title: 'Vote Cast!',
         description: 'Your vote has been successfully recorded.',
-        className: 'bg-accent text-accent-foreground',
+        className: 'bg-green-600 text-white',
       });
     } catch (error: any) {
       toast({
@@ -95,6 +96,10 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     toast({ description: 'Poll link copied to clipboard!' });
+    setIsCopied(true);
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
   };
 
   return (
@@ -140,15 +145,23 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
               </Button>
             )}
             {hasVoted && (
-              <div className="mt-6 text-center text-accent-foreground bg-accent/20 p-4 rounded-md flex items-center justify-center gap-2">
+              <div className="mt-6 text-center text-green-700 bg-green-100 p-4 rounded-md flex items-center justify-center gap-2 dark:bg-green-900/50 dark:text-green-300">
                 <CheckCircle className="h-5 w-5" />
                 <p className="font-medium">You have voted on this poll.</p>
               </div>
             )}
           </CardContent>
           <div className="p-6 pt-0">
-             <Button variant="secondary" className="w-full" onClick={copyLink}>
-              <Share2 className="mr-2 h-4 w-4" /> Copy Share Link
+             <Button variant="secondary" className="w-full" onClick={copyLink} disabled={isCopied}>
+              {isCopied ? (
+                <>
+                  <Check className="mr-2 h-4 w-4" /> Copied!
+                </>
+              ) : (
+                <>
+                  <Share2 className="mr-2 h-4 w-4" /> Copy Share Link
+                </>
+              )}
             </Button>
           </div>
         </Card>
