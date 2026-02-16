@@ -8,15 +8,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  await dbConnect();
-
-  const { question, options } = req.body;
-
-  if (!question || !options || !Array.isArray(options) || options.length < 2) {
-    return res.status(400).json({ message: 'Invalid poll data. Question and at least two options are required.' });
-  }
-
   try {
+    await dbConnect();
+
+    const { question, options } = req.body;
+
+    if (!question || !options || !Array.isArray(options) || options.length < 2) {
+      return res.status(400).json({ message: 'Invalid poll data. Question and at least two options are required.' });
+    }
+
     const pollId = nanoid(10);
     const newPoll = new PollModel({
       pollId,

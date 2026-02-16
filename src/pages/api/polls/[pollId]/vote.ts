@@ -26,17 +26,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  await dbConnect();
-
-  const { pollId } = req.query;
-  const { optionId } = req.body;
-  const ip = getIp(req);
-
-  if (!pollId || !optionId || !ip) {
-    return res.status(400).json({ message: 'Missing pollId, optionId, or IP address.' });
-  }
-
   try {
+    await dbConnect();
+
+    const { pollId } = req.query;
+    const { optionId } = req.body;
+    const ip = getIp(req);
+
+    if (!pollId || !optionId || !ip) {
+      return res.status(400).json({ message: 'Missing pollId, optionId, or IP address.' });
+    }
+
     // 1. IP-based vote check
     const existingVote = await VoteModel.findOne({ pollId, ip });
     if (existingVote) {

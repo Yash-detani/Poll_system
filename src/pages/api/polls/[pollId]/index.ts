@@ -7,11 +7,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  await dbConnect();
-
-  const { pollId } = req.query;
-
   try {
+    await dbConnect();
+
+    const { pollId } = req.query;
+
     const poll = await PollModel.findOne({ pollId }).lean();
 
     if (!poll) {
