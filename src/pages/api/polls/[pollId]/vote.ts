@@ -1,0 +1,74 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+import dbConnect from '@/lib/db';
+import PollModel from '@/lib/models/poll';
+import VoteModel from '@/lib/models/vote';
+import { Server as ServerIO } from 'socket.io';
+import { Server as NetServer } from 'http';
+
+type NextApiResponseServerIO = NextApiResponse & {
+  socket: {
+    server: NetServer & {
+      io: ServerIO;
+    };
+  };
+};
+
+const getIp = (req: NextApiRequest) => {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.socket.remoteAddress;
+};
+
+export default async function handler(req: NextApiRequest, res: NextApiResponseServerIO) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
+  }
+
+  await dbConnect();
+
+  const { pollId } = req.query;
+  const { optionId } = req.body;
+  const ip = getIp(req);
+
+  if (!pollId || !optionId || !ip) {
+    return res.status(400).json({ message: 'Missing pollId, optionId, or IP address.' });
+  }
+
+  try {
+    // 1. IP-based vote check
+    const existingVote = await VoteModel.findOne({ pollId, ip });
+    if (existingVote) {
+      return res.status(403).json({ message: 'You have already voted on this poll from this IP.' });
+    }
+
+    // 2. Atomically update the poll
+    const poll = await PollModel.findOneAndUpdate(
+      { pollId, 'options._id': optionId },
+      { $inc: { 'options.$.votes': 1 } },
+      { new: true }
+    );
+
+    if (!poll) {
+      return res.status(404).json({ message: 'Poll or option not found.' });
+    }
+
+    // 3. Record the vote to prevent future attempts
+    await VoteModel.create({ pollId, ip });
+
+    // 4. Emit real-time update
+    const io = res.socket.server.io;
+    if (io) {
+      io.to(pollId as string).emit('vote:update', poll);
+    }
+    
+    res.status(200).json(poll);
+  } catch (error: any) {
+    if (error.code === 11000) { // MongoDB duplicate key error
+      return res.status(403).json({ message: 'You have already voted on this poll.' });
+    }
+    console.error('Error processing vote:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
