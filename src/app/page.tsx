@@ -23,14 +23,14 @@ export default async function Home() {
 
   return (
     <>
-      <section className="text-center py-20 lg:py-32">
-        <div className="container">
-          <h1 className="text-4xl lg:text-6xl font-extrabold tracking-tight">Create Real-time Polls in Seconds</h1>
-          <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
+      <section className="text-center py-12 md:py-20 lg:py-32">
+        <div className="container px-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight">Create Real-time Polls in Seconds</h1>
+          <p className="max-w-2xl mx-auto mt-4 text-base sm:text-lg text-muted-foreground">
             The simplest way to gather opinions. Create a poll, share the link, and watch the votes roll in live.
           </p>
           <div className="mt-8">
-            <Button size="lg" asChild className="text-lg py-6 px-8">
+            <Button size="lg" asChild className="text-lg py-5 px-8 h-auto">
               <a href="#create-poll">
                 Create Poll
               </a>
@@ -41,13 +41,13 @@ export default async function Home() {
 
       {/* Recent Polls Section */}
       {polls.length > 0 && (
-        <section className="py-16 bg-muted/50">
-          <div className="container">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold tracking-tight">Recent Polls</h2>
-              <p className="text-muted-foreground mt-2">Check out the latest polls created by the community.</p>
+        <section className="py-12 md:py-16 bg-muted/30">
+          <div className="container px-4">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Recent Polls</h2>
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">Check out the latest polls created by the community.</p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {polls.map((poll) => {
                 const totalVotes = poll.options.reduce((acc, opt) => acc + opt.votes, 0);
                 return (

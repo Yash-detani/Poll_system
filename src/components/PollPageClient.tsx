@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { type Poll } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
   const [hasVoted, setHasVoted] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const router = useRouter();
   const { toast } = useToast();
 
   const totalVotes = useMemo(() => {
@@ -26,28 +28,50 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
   }, [poll]);
 
   useEffect(() => {
-    // Check localStorage for previous vote
-    const voted = localStorage.getItem(`voted_poll_${poll.pollId}`);
-    if (voted) {
-      setHasVoted(true);
+    // Check if the poll actually exists (in case it was deleted)
+    if (!poll) {
+      toast({ title: 'Poll Not Found', description: 'This poll may have been deleted.', variant: 'destructive' });
+      router.push('/');
+      return;
     }
 
-    // Initialize Socket.IO connection
-    const socket: Socket = io({ path: '/api/socket' });
+    // Initialize Socket.IO connection with reconnection logic
+    const socket: Socket = io({
+      path: '/api/socket',
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+    });
 
     socket.on('connect', () => {
       socket.emit('join:poll', poll.pollId);
     });
 
     socket.on('vote:update', (updatedPoll: Poll) => {
-      setPoll(updatedPoll);
+      if (updatedPoll.pollId === poll.pollId) {
+        setPoll(updatedPoll);
+      }
+    });
+
+    socket.on('poll:deleted', (deletedPollId: string) => {
+      if (deletedPollId === poll.pollId) {
+        toast({
+          title: 'Poll Deleted',
+          description: 'This poll has been removed from the database.',
+          variant: 'destructive'
+        });
+        router.push('/');
+      }
+    });
+
+    socket.on('connect_error', (error) => {
+      // If we consistently fail to connect, it might be a server issue or the socket path changed
     });
 
     // Clean up on component unmount
     return () => {
       socket.disconnect();
     };
-  }, [poll.pollId]);
+  }, [poll.pollId, toast]); // Removed 'router' from dependency to avoid unnecessary re-effects if router instance changes
 
   const handleVote = async () => {
     if (!selectedOption) {
