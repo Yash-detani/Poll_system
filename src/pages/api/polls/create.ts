@@ -9,13 +9,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-<<<<<<< HEAD
-    await dbConnect();
-=======
     console.log('Connecting to database...');
     await dbConnect();
     console.log('Database connected successfully.');
->>>>>>> 3e2864c (app_created)
 
     const { question, options } = req.body;
 
@@ -30,21 +26,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       options: options.map((text: string) => ({ text, votes: 0 })),
     });
 
-<<<<<<< HEAD
-    await newPoll.save();
-=======
     console.log('Saving new poll...');
     await newPoll.save();
     console.log('Poll saved successfully:', pollId);
->>>>>>> 3e2864c (app_created)
 
     res.status(201).json({ pollId });
   } catch (error) {
     console.error('Error creating poll:', error);
-<<<<<<< HEAD
-    res.status(500).json({ message: 'Internal Server Error' });
-=======
     res.status(500).json({ message: 'Internal Server Error', error: String(error) });
->>>>>>> 3e2864c (app_created)
   }
 }

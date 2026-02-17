@@ -43,11 +43,7 @@
     "firebase": "^11.9.1",
     "genkit": "^1.28.0",
     "lucide-react": "^0.475.0",
-<<<<<<< HEAD
-    "mongoose": "^8.4.1",
-=======
     "mongoose": "^8.23.0",
->>>>>>> 3e2864c (app_created)
     "nanoid": "^5.0.7",
     "next": "15.5.9",
     "patch-package": "^8.0.0",
