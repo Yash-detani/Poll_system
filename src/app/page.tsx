@@ -13,11 +13,11 @@ export default function Home() {
             The simplest way to gather opinions. Create a poll, share the link, and watch the votes roll in live.
           </p>
           <div className="mt-8">
-            <a href="#create-poll">
-              <Button size="lg" className="text-lg py-6 px-8">
+            <Button size="lg" asChild className="text-lg py-6 px-8">
+              <a href="#create-poll">
                 Create Your First Poll
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         </div>
       </section>
