@@ -36,7 +36,6 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
     const socket: Socket = io({ path: '/api/socket' });
 
     socket.on('connect', () => {
-      console.log('Connected to socket server');
       socket.emit('join:poll', poll.pollId);
     });
 
@@ -152,7 +151,7 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
             )}
           </CardContent>
           <div className="p-6 pt-0">
-             <Button variant="secondary" className="w-full" onClick={copyLink} disabled={isCopied}>
+            <Button variant="secondary" className="w-full" onClick={copyLink} disabled={isCopied}>
               {isCopied ? (
                 <>
                   <Check className="mr-2 h-4 w-4" /> Copied!

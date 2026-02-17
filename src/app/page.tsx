@@ -4,15 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Users, Zap, Share2, BarChart2, ArrowRight } from "lucide-react";
 import Link from 'next/link';
 import { type Poll } from "@/types";
+import dbConnect from "@/lib/db";
+import PollModel from "@/lib/models/poll";
 
 async function getPolls(): Promise<Poll[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/polls`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) {
+  try {
+    await dbConnect();
+    const polls = await PollModel.find({}).sort({ createdAt: -1 }).lean();
+    return JSON.parse(JSON.stringify(polls));
+  } catch (error) {
+    console.error('Error fetching polls:', error);
     return [];
   }
-  return res.json();
 }
 
 export default async function Home() {
