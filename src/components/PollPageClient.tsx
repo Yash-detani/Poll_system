@@ -35,6 +35,12 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
       return;
     }
 
+    // Check localStorage for previous vote
+    const voted = localStorage.getItem(`voted_poll_${poll.pollId}`);
+    if (voted) {
+      setHasVoted(true);
+    }
+
     // Initialize Socket.IO connection with reconnection logic
     const socket: Socket = io({
       path: '/api/socket',
@@ -52,18 +58,24 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
       }
     });
 
-    socket.on('poll:deleted', (deletedPollId: string) => {
-      if (deletedPollId === poll.pollId) {
-        toast({
-          title: 'Poll Deleted',
-          description: 'This poll has been removed from the database.',
-          variant: 'destructive'
-        });
-        router.push('/');
+    socket.on('polls:refreshed', async () => {
+      try {
+        const res = await fetch(`/api/polls/${poll.pollId}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            toast({ title: 'Poll Deleted', description: 'This poll has been removed.', variant: 'destructive' });
+            router.push('/');
+          }
+          return;
+        }
+        const updatedPoll = await res.json();
+        setPoll(updatedPoll);
+      } catch (error) {
+        console.error('Failed to sync updated poll:', error);
       }
     });
 
-    socket.on('connect_error', (error) => {
+    socket.on('connect_error', () => {
       // If we consistently fail to connect, it might be a server issue or the socket path changed
     });
 
