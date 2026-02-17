@@ -38,8 +38,24 @@ yarn-error.log*
 next-env.d.ts
 
 .genkit/*
+# Ignore all .env files, but keep example files
 .env*
+!.env.example
 
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# IDE / Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.sublime-project
+*.sublime-workspace
+
+# OS / System
+Thumbs.db
+ehthumbs.db
+Desktop.ini

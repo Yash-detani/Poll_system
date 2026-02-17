@@ -19,8 +19,9 @@ async function getPoll(pollId: string): Promise<Poll | null> {
   }
 }
 
-export default async function PollPage({ params }: { params: { pollId: string } }) {
-  const poll = await getPoll(params.pollId);
+export default async function PollPage({ params }: { params: Promise<{ pollId: string }> }) {
+  const { pollId } = await params;
+  const poll = await getPoll(pollId);
 
   if (!poll) {
     notFound();
@@ -29,8 +30,9 @@ export default async function PollPage({ params }: { params: { pollId: string } 
   return <PollPageClient initialPoll={poll} />;
 }
 
-export async function generateMetadata({ params }: { params: { pollId: string } }) {
-  const poll = await getPoll(params.pollId);
+export async function generateMetadata({ params }: { params: Promise<{ pollId: string }> }) {
+  const { pollId } = await params;
+  const poll = await getPoll(pollId);
   return {
     title: poll ? `${poll.question} | QuickVote` : 'Poll Not Found',
   };
