@@ -9,10 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    console.log('Connecting to database...');
     await dbConnect();
-    console.log('Database connected successfully.');
-
     const { question, options } = req.body;
 
     if (!question || !options || !Array.isArray(options) || options.length < 2) {
@@ -26,9 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       options: options.map((text: string) => ({ text, votes: 0 })),
     });
 
-    console.log('Saving new poll...');
     await newPoll.save();
-    console.log('Poll saved successfully:', pollId);
 
     res.status(201).json({ pollId });
   } catch (error) {

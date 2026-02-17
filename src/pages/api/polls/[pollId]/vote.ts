@@ -37,13 +37,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
       return res.status(400).json({ message: 'Missing pollId, optionId, or IP address.' });
     }
 
-    // 1. IP-based vote check
-    const existingVote = await VoteModel.findOne({ pollId, ip });
-    if (existingVote) {
-      return res.status(403).json({ message: 'You have already voted on this poll from this IP.' });
+    // 1. Record the vote FIRST to prevent race conditions (duplicate votes)
+    // The unique index on { pollId, ip } will throw an error if this exists
+    try {
+      await VoteModel.create({ pollId, ip });
+    } catch (error: any) {
+      if (error.code === 11000) { // MongoDB duplicate key error
+        return res.status(403).json({ message: 'You have already voted on this poll.' });
+      }
+      throw error; // Re-throw other errors
     }
 
-    // 2. Atomically update the poll
+    // 2. Atomically update the poll count
     const poll = await PollModel.findOneAndUpdate(
       { pollId, 'options._id': optionId },
       { $inc: { 'options.$.votes': 1 } },
@@ -51,23 +56,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
     );
 
     if (!poll) {
+      // Rollback vote if poll/option doesn't exist (clean up orphan vote)
+      await VoteModel.deleteOne({ pollId, ip });
       return res.status(404).json({ message: 'Poll or option not found.' });
     }
 
-    // 3. Record the vote to prevent future attempts
-    await VoteModel.create({ pollId, ip });
-
-    // 4. Emit real-time update
+    // 3. Emit real-time update
     const io = res.socket.server.io;
     if (io) {
       io.to(pollId as string).emit('vote:update', poll);
     }
-    
+
     res.status(200).json(poll);
   } catch (error: any) {
-    if (error.code === 11000) { // MongoDB duplicate key error
-      return res.status(403).json({ message: 'You have already voted on this poll.' });
-    }
     console.error('Error processing vote:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
