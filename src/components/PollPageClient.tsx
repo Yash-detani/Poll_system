@@ -41,6 +41,13 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
       setHasVoted(true);
     }
 
+    // Ensure we have a persistent Voter ID for this device
+    let voterId = localStorage.getItem('poll_voter_id');
+    if (!voterId) {
+      voterId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('poll_voter_id', voterId);
+    }
+
     // Initialize Socket.IO connection with reconnection logic
     const socket: Socket = io({
       path: '/api/socket',
@@ -93,11 +100,13 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
 
     setIsVoting(true);
 
+    const voterId = localStorage.getItem('poll_voter_id');
+
     try {
       const res = await fetch(`/api/polls/${poll.pollId}/vote`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ optionId: selectedOption }),
+        body: JSON.stringify({ optionId: selectedOption, voterId }),
       });
 
       const data = await res.json();

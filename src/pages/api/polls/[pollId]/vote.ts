@@ -30,17 +30,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
     await dbConnect();
 
     const { pollId } = req.query;
-    const { optionId } = req.body;
+    const { optionId, voterId } = req.body;
     const ip = getIp(req);
 
-    if (!pollId || !optionId || !ip) {
-      return res.status(400).json({ message: 'Missing pollId, optionId, or IP address.' });
+    if (!pollId || !optionId || !ip || !voterId) {
+      return res.status(400).json({ message: 'Missing pollId, optionId, voterId, or IP address.' });
     }
 
     // 1. Record the vote FIRST to prevent race conditions (duplicate votes)
-    // The unique index on { pollId, ip } will throw an error if this exists
+    // The unique index on { pollId, voterId } will throw an error if this exists
     try {
-      await VoteModel.create({ pollId, ip });
+      await VoteModel.create({ pollId, voterId, ip });
     } catch (error: any) {
       if (error.code === 11000) { // MongoDB duplicate key error
         return res.status(403).json({ message: 'You have already voted on this poll.' });
@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
 
     if (!poll) {
       // Rollback vote if poll/option doesn't exist (clean up orphan vote)
-      await VoteModel.deleteOne({ pollId, ip });
+      await VoteModel.deleteOne({ pollId, voterId });
       return res.status(404).json({ message: 'Poll or option not found.' });
     }
 
