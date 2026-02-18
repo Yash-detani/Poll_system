@@ -1,11 +1,12 @@
 import { CreatePollForm } from "@/components/CreatePollForm";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Users, Zap, Share2, BarChart2, ArrowRight } from "lucide-react";
-import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Zap, Share2 } from "lucide-react";
 import { type Poll } from "@/types";
 import dbConnect from "@/lib/db";
 import PollModel from "@/lib/models/poll";
+
+import { PollsListClient } from "@/components/PollsListClient";
 
 async function getPolls(): Promise<Poll[]> {
   try {
@@ -47,32 +48,7 @@ export default async function Home() {
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Recent Polls</h2>
               <p className="text-muted-foreground mt-2 text-sm sm:text-base">Check out the latest polls created by the community.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {polls.map((poll) => {
-                const totalVotes = poll.options.reduce((acc, opt) => acc + opt.votes, 0);
-                return (
-                  <Card key={poll.pollId} className="flex flex-col h-full hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <CardTitle className="line-clamp-2 text-xl">{poll.question}</CardTitle>
-                      <CardDescription>{new Date(poll.createdAt!).toLocaleDateString()}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <BarChart2 className="w-4 h-4" />
-                        <span>{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button asChild className="w-full" variant="secondary">
-                        <Link href={`/poll/${poll.pollId}`}>
-                          Vote Now <ArrowRight className="w-4 h-4 ml-2" />
-                        </Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                );
-              })}
-            </div>
+            <PollsListClient initialPolls={polls} />
           </div>
         </section>
       )}
