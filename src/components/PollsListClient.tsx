@@ -16,32 +16,45 @@ export function PollsListClient({ initialPolls }: PollsListClientProps) {
     const [polls, setPolls] = useState<Poll[]>(initialPolls);
 
     useEffect(() => {
-        const socket: Socket = io({
-            path: '/api/socket',
-            reconnectionAttempts: 10,
-            reconnectionDelay: 2000,
-        });
+        let socketInstance: Socket | null = null;
 
-        socket.on('vote:update', (updatedPoll: Poll) => {
-            setPolls(prevPolls =>
-                prevPolls.map(p => p.pollId === updatedPoll.pollId ? updatedPoll : p)
-            );
-        });
+        const initSocket = async () => {
+            // Ensure the socket server is initialized
+            await fetch('/api/socket');
 
-        socket.on('polls:refreshed', async () => {
-            try {
-                const res = await fetch('/api/polls');
-                if (res.ok) {
-                    const freshPolls = await res.json();
-                    setPolls(freshPolls);
+            const socket: Socket = io({
+                path: '/api/socket',
+                reconnectionAttempts: 10,
+                reconnectionDelay: 2000,
+            });
+
+            socket.on('vote:update', (updatedPoll: Poll) => {
+                setPolls(prevPolls =>
+                    prevPolls.map(p => p.pollId === updatedPoll.pollId ? updatedPoll : p)
+                );
+            });
+
+            socket.on('polls:refreshed', async () => {
+                try {
+                    const res = await fetch('/api/polls');
+                    if (res.ok) {
+                        const freshPolls = await res.json();
+                        setPolls(freshPolls);
+                    }
+                } catch (error) {
+                    console.error('Failed to refresh polls list:', error);
                 }
-            } catch (error) {
-                console.error('Failed to refresh polls list:', error);
-            }
-        });
+            });
+
+            socketInstance = socket;
+        };
+
+        initSocket();
 
         return () => {
-            socket.disconnect();
+            if (socketInstance) {
+                socketInstance.disconnect();
+            }
         };
     }, []);
 

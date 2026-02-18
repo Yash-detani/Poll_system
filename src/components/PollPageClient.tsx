@@ -49,48 +49,57 @@ export default function PollPageClient({ initialPoll }: PollPageClientProps) {
     }
 
     // Initialize Socket.IO connection with reconnection logic
-    const socket: Socket = io({
-      path: '/api/socket',
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
-    });
+    const initSocket = async () => {
+      await fetch('/api/socket');
 
-    socket.on('connect', () => {
-      socket.emit('join:poll', poll.pollId);
-    });
+      const socket: Socket = io({
+        path: '/api/socket',
+        reconnectionAttempts: 10,
+        reconnectionDelay: 2000,
+      });
 
-    socket.on('vote:update', (updatedPoll: Poll) => {
-      if (updatedPoll.pollId === poll.pollId) {
-        setPoll(updatedPoll);
-      }
-    });
+      socket.on('connect', () => {
+        socket.emit('join:poll', poll.pollId);
+      });
 
-    socket.on('polls:refreshed', async () => {
-      try {
-        const res = await fetch(`/api/polls/${poll.pollId}`);
-        if (!res.ok) {
-          if (res.status === 404) {
-            toast({ title: 'Poll Deleted', description: 'This poll has been removed.', variant: 'destructive' });
-            router.push('/');
-          }
-          return;
+      socket.on('vote:update', (updatedPoll: Poll) => {
+        if (updatedPoll.pollId === poll.pollId) {
+          setPoll(updatedPoll);
         }
-        const updatedPoll = await res.json();
-        setPoll(updatedPoll);
-      } catch (error) {
-        console.error('Failed to sync updated poll:', error);
-      }
-    });
+      });
 
-    socket.on('connect_error', () => {
-      // If we consistently fail to connect, it might be a server issue or the socket path changed
+      socket.on('polls:refreshed', async () => {
+        try {
+          const res = await fetch(`/api/polls/${poll.pollId}`);
+          if (!res.ok) {
+            if (res.status === 404) {
+              toast({ title: 'Poll Deleted', description: 'This poll has been removed.', variant: 'destructive' });
+              router.push('/');
+            }
+            return;
+          }
+          const updatedPoll = await res.json();
+          setPoll(updatedPoll);
+        } catch (error) {
+          console.error('Failed to sync updated poll:', error);
+        }
+      });
+
+      return socket;
+    };
+
+    let socketInstance: Socket | null = null;
+    initSocket().then(s => {
+      socketInstance = s;
     });
 
     // Clean up on component unmount
     return () => {
-      socket.disconnect();
+      if (socketInstance) {
+        socketInstance.disconnect();
+      }
     };
-  }, [poll.pollId, toast]); // Removed 'router' from dependency to avoid unnecessary re-effects if router instance changes
+  }, [poll.pollId, toast]);
 
   const handleVote = async () => {
     if (!selectedOption) {

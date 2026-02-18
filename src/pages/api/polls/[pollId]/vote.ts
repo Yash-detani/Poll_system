@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseS
     // 3. Emit real-time update
     const io = res.socket.server.io;
     if (io) {
-      io.to(pollId as string).emit('vote:update', poll);
+      io.emit('vote:update', poll);
     }
 
     res.status(200).json(poll);

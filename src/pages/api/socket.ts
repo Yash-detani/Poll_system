@@ -31,10 +31,17 @@ const ioHandler = async (req: NextApiRequest, res: NextApiResponseServerIO) => {
     });
 
     io.on('connection', (socket: Socket) => {
+      console.log('Socket connected:', socket.id);
+      
       socket.on('join:poll', (pollId: string) => {
         if (pollId) {
+          console.log(`Socket ${socket.id} joining room: ${pollId}`);
           socket.join(pollId);
         }
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Socket disconnected:', socket.id);
       });
     });
 
