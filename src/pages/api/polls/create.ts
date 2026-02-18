@@ -2,8 +2,18 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { nanoid } from 'nanoid';
 import dbConnect from '@/lib/db';
 import PollModel from '@/lib/models/poll';
+import { Server as ServerIO } from 'socket.io';
+import { Server as NetServer } from 'http';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+type NextApiResponseServerIO = NextApiResponse & {
+  socket: {
+    server: NetServer & {
+      io: ServerIO;
+    };
+  };
+};
+
+export default async function handler(req: NextApiRequest, res: NextApiResponseServerIO) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -24,6 +34,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     await newPoll.save();
+
+    // Explicitly notify the socket server that a new poll was created
+    const io = res.socket.server.io;
+    if (io) {
+      io.emit('polls:refreshed');
+    }
 
     res.status(201).json({ pollId });
   } catch (error) {
